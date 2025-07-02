@@ -16,22 +16,34 @@ const cors = require("cors");
 connectDB();
 const app = express();
 
-// Enable CORS
+// ✅ Allow multiple origins (localhost + Netlify)
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://chat-app-894.netlify.app", // your Netlify domain
+];
+
+// ✅ CORS middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
 
 app.use(express.json());
 
-// API Routes
+// ✅ API Routes
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
 
-// Deployment setup
+// ✅ Deployment setup
 const __dirname1 = path.resolve();
 
 if (process.env.NODE_ENV === "production") {
@@ -46,21 +58,21 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// Error Middleware
+// ✅ Error Middleware
 app.use(notFound);
 app.use(errorHandler);
 
-// Start the server
+// ✅ Start the server
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`Server running on PORT ${PORT}...`);
 });
 
-// Socket.io setup
+// ✅ Socket.io setup with same CORS policy
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: allowedOrigins,
     credentials: true,
   },
 });
